@@ -64,7 +64,7 @@ public class EmailServiceImpl implements IEmailService {
 
         sendHtmlMail(to, subject, htmlContent);
     }
-`
+
     @Async
     public void sendWelcomeEmail(String to, String username) throws MessagingException {
         String subject = "Welcome Gaming Arena 🎮";
