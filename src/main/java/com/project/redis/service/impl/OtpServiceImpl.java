@@ -3,6 +3,7 @@ package com.project.redis.service.impl;
 import com.project.redis.exception.InvalidOtpException;
 import com.project.redis.exception.OtpExpiredException;
 import com.project.redis.service.IEmailService;
+import com.project.redis.service.IOtpService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OtpServiceImpl {
+public class OtpServiceImpl implements IOtpService {
     private final IEmailService emailService;
     private static final SecureRandom random = new SecureRandom();
     private final RedisTemplate<String, Object> redisTemplate;
