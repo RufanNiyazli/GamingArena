@@ -124,6 +124,6 @@ public class OtpServiceImpl {
     public void deleteOtp(String email) {
         String key = getOtpKey(email);
         redisTemplate.delete(key);
-        log.info("🗑️ OTP cannot delete: {}", email);
+        log.info("OTP cannot delete: {}", email);
     }
 }
