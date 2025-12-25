@@ -6,13 +6,11 @@ import com.project.redis.enums.UserStatus;
 import com.project.redis.exception.InvalidOtpException;
 import com.project.redis.exception.OtpExpiredException;
 import com.project.redis.exception.UserAlreadyExistsException;
-import com.project.redis.exception.UserNotFoundException;
 import com.project.redis.model.User;
 import com.project.redis.repository.UserRepository;
 import com.project.redis.security.JwtService;
 import com.project.redis.service.IEmailService;
 import com.project.redis.service.IOtpService;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -116,7 +114,7 @@ public class AuthServiceImpl {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("username", user.getUsername());
-        String token = jwtService.generateToken(claims,user);
+        String token = jwtService.generateToken(claims, user);
 
         String tokenKey = "token:user:" + user.getId();
         redisTemplate.opsForValue().set(
@@ -144,6 +142,13 @@ public class AuthServiceImpl {
         return ApiResponse.success("Login success", authResponse);
 
 
+    }
+
+    public ApiResponse<String> logout(Long id) {
+        String key = "token:user:" + id;
+        redisTemplate.delete(key);
+        redisTemplate.opsForSet().remove("online:users:", "user:" + id);
+        return ApiResponse.success("Successful Logout");
     }
 
 
