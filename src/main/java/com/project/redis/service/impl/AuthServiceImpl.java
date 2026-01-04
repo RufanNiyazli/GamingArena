@@ -1,6 +1,11 @@
 package com.project.redis.service.impl;
 
-import com.project.redis.dto.*;
+import com.project.redis.dto.request.RegisterRequest;
+import com.project.redis.dto.request.SendOTPRequest;
+import com.project.redis.dto.request.VerifyOTPRequest;
+import com.project.redis.dto.response.ApiResponse;
+import com.project.redis.dto.response.AuthResponse;
+import com.project.redis.dto.response.UserResponse;
 import com.project.redis.enums.UserRole;
 import com.project.redis.enums.UserStatus;
 import com.project.redis.exception.InvalidOtpException;
@@ -14,7 +19,6 @@ import com.project.redis.service.IOtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

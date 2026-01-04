@@ -1,4 +1,4 @@
-package com.project.redis.dto;
+package com.project.redis.dto.response;
 
 import lombok.*;
 

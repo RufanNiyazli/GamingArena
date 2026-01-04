@@ -1,6 +1,6 @@
 package com.project.redis.exception;
 
-import com.project.redis.dto.ApiResponse;
+import com.project.redis.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.project.redis.dto;
+package com.project.redis.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

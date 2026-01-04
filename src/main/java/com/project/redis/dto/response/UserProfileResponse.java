@@ -1,29 +1,24 @@
-package com.project.redis.dto;
+package com.project.redis.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserResponse {
+@Builder
+
+public class UserProfileResponse {
     private Long id;
     private String username;
     private String email;
     private String avatar;
-    private Integer level;
     private Long totalScore;
+    private Integer level;
     private Integer totalMatches;
     private Integer wins;
-    private Integer losses;
     private Double winRate;
-    private String role;
-    private String status;
-    private LocalDateTime createdAt;
+    private Integer losses;
     private LocalDateTime lastLogin;
-    private Boolean emailVerified;
 }

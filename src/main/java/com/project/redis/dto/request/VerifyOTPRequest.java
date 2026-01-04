@@ -1,8 +1,6 @@
-package com.project.redis.dto;
+package com.project.redis.dto.request;
 
 import jakarta.validation.constraints.*;
-
-import static io.lettuce.core.pubsub.PubSubOutput.Type.message;
 
 public record VerifyOTPRequest(
         @NotBlank(message = "Email can't be empty")

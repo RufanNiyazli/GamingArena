@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -84,6 +85,19 @@ public class User implements UserDetails {
     @Column
     private LocalDateTime emailVerifiedAt;
 
+    // Relationships
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Match> matches = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_achievements",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "achievement_id")
+    )
+    @Builder.Default
+    private List<Achievement> achievements = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -99,6 +113,7 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -118,6 +133,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return status == UserStatus.ACTIVE && emailVerifiedAt != null;
     }
+
     public void updateLastLogin() {
         this.lastLogin = LocalDateTime.now();
     }

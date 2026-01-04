@@ -1,12 +1,9 @@
 package com.project.redis.service.impl;
 
-import com.project.redis.dto.UserProfileResponse;
-import com.project.redis.dto.UserResponse;
-import com.project.redis.exception.UserNotFoundException;
+import com.project.redis.dto.response.UserProfileResponse;
 import com.project.redis.model.User;
 import com.project.redis.repository.UserRepository;
 import com.project.redis.service.IUserProfileService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.HashOperations;
