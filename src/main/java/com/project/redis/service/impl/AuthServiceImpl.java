@@ -14,6 +14,7 @@ import com.project.redis.service.IOtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class AuthServiceImpl {
     private final JwtService jwtService;
 
 
+
     @Transactional
     public ApiResponse<UserResponse> register(RegisterRequest registerRequest) throws UserAlreadyExistsException {
         String email = registerRequest.email().toLowerCase().trim();
@@ -49,6 +51,7 @@ public class AuthServiceImpl {
         User user = User.builder()
                 .avatar("default.png")
                 .createdAt(LocalDateTime.now())
+
                 .email(email)
                 .username(username)
                 .level(1)

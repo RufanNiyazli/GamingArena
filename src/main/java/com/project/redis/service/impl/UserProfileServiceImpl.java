@@ -13,6 +13,10 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 
 @Slf4j
@@ -21,26 +25,40 @@ public class UserProfileServiceImpl implements IUserProfileService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final HashOperations<String, String, Object> hashOps;
 
-    public UserProfileServiceImpl(UserRepository userRepository, RedisTemplate<String, Object> redisTemplate, HashOperations<String, String, Object> hashOps) {
+    public UserProfileServiceImpl(UserRepository userRepository, RedisTemplate<String, Object> redisTemplate) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.hashOps = redisTemplate.opsForHash();
     }
 
-        @Override
-        @Cacheable(value = "users", key = "#userId")
-        public UserProfileResponse readUserProfile(Long userId) {
+    @Override
+    @Cacheable(value = "user-profile", key = "'user:' + #userId + ':profile'")
+    public UserProfileResponse readUserProfile(Long userId) {
 
-            User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("This user not found!"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("This user not found!"));
 
-            UserProfileResponse userProfileResponse = mapToUserProfileResponse(user);
+        UserProfileResponse userProfileResponse = mapToUserProfileResponse(user);
 
-            String redisKey = "cache::user:" + userId;
+        String redisKey = "cache::user:" + userId;
 
-            hashOps.put(redisKey, "username", userProfileResponse.getUsername());
 
-            return null;
-        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("username", userProfileResponse.getUsername());
+        map.put("email", userProfileResponse.getEmail());
+        map.put("avatar", userProfileResponse.getAvatar());
+        map.put("totalScore", userProfileResponse.getTotalScore());
+        map.put("level", userProfileResponse.getLevel());
+        map.put("totalMatches", userProfileResponse.getTotalMatches());
+        map.put("wins", userProfileResponse.getWins());
+        map.put("winRate", userProfileResponse.getWinRate());
+        map.put("losses", userProfileResponse.getLosses());
+        map.put("lastLogin", userProfileResponse.getLastLogin());
+
+        hashOps.putAll(redisKey, map);
+        redisTemplate.expire(redisKey, Duration.ofMinutes(5));
+
+        return userProfileResponse;
+    }
 
     public UserProfileResponse mapToUserProfileResponse(User user) {
 
