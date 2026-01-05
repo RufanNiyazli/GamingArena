@@ -5,12 +5,12 @@ import com.project.redis.model.User;
 import com.project.redis.repository.UserRepository;
 import com.project.redis.service.IUserProfileService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,32 +29,72 @@ public class UserProfileServiceImpl implements IUserProfileService {
     }
 
     @Override
-    @Cacheable(value = "user-profile", key = "'user:' + #userId + ':profile'")
     public UserProfileResponse readUserProfile(Long userId) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("This user not found!"));
+        String redisKey = "user:" + userId;
 
-        UserProfileResponse userProfileResponse = mapToUserProfileResponse(user);
+        Map<String, Object> cached = hashOps.entries(redisKey);
 
-        String redisKey = "cache::user:" + userId;
+        if (!cached.isEmpty()) {
+            return mapFromRedis(cached);
+        }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfileResponse response = mapToUserProfileResponse(user);
 
         Map<String, Object> map = new HashMap<>();
-        map.put("username", userProfileResponse.getUsername());
-        map.put("email", userProfileResponse.getEmail());
-        map.put("avatar", userProfileResponse.getAvatar());
-        map.put("totalScore", userProfileResponse.getTotalScore());
-        map.put("level", userProfileResponse.getLevel());
-        map.put("totalMatches", userProfileResponse.getTotalMatches());
-        map.put("wins", userProfileResponse.getWins());
-        map.put("winRate", userProfileResponse.getWinRate());
-        map.put("losses", userProfileResponse.getLosses());
-        map.put("lastLogin", userProfileResponse.getLastLogin());
+        map.put("username", response.getUsername());
+        map.put("email", response.getEmail());
+        map.put("avatar", response.getAvatar());
+        map.put("totalScore", response.getTotalScore());
+        map.put("level", response.getLevel());
+        map.put("totalMatches", response.getTotalMatches());
+        map.put("wins", response.getWins());
+        map.put("losses", response.getLosses());
+        map.put("lastLogin", response.getLastLogin());
 
         hashOps.putAll(redisKey, map);
         redisTemplate.expire(redisKey, Duration.ofMinutes(5));
 
-        return userProfileResponse;
+        return response;
+    }
+
+    private UserProfileResponse mapFromRedis(Map<String, Object> cached) {
+        return UserProfileResponse.builder()
+                .username((String) cached.get("username"))
+                .email((String) cached.get("email"))
+                .avatar((String) cached.get("avatar"))
+                .totalScore(castToLong(cached.get("totalScore")))
+                .level(castToInt(cached.get("level")))
+                .totalMatches(castToInt(cached.get("totalMatches")))
+                .wins(castToInt(cached.get("wins")))
+                .losses(castToInt(cached.get("losses")))
+                .winRate(castToDouble(cached.get("winRate")))
+                .lastLogin(cached.get("lastLogin") != null ? LocalDateTime.parse((String) cached.get("lastLogin")) : null)
+                .build();
+    }
+
+    private Integer castToInt(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof Integer) return (Integer) obj;
+        if (obj instanceof Long) return ((Long) obj).intValue();
+        return Integer.parseInt(obj.toString());
+    }
+
+    private Long castToLong(Object obj) {
+        if (obj == null) return 0L;
+        if (obj instanceof Long) return (Long) obj;
+        if (obj instanceof Integer) return ((Integer) obj).longValue();
+        return Long.parseLong(obj.toString());
+    }
+
+    private Double castToDouble(Object obj) {
+        if (obj == null) return 0.0;
+        if (obj instanceof Double) return (Double) obj;
+        if (obj instanceof Float) return ((Float) obj).doubleValue();
+        return Double.parseDouble(obj.toString());
     }
 
     public UserProfileResponse mapToUserProfileResponse(User user) {
