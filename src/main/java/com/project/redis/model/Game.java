@@ -80,4 +80,9 @@ public class Game {
     @Builder.Default
     private List<Match> matches = new ArrayList<>();
 
+
+    public void incrementPlayCount() {
+        playCount++;
+    }
+
 }
