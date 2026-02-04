@@ -42,7 +42,7 @@ public class GameServiceImpl implements IGameService {
             log.debug("Cache HIT: {}", cacheKey);
             return cached;
         }
-        List<Game> games = gameRepository.findByStatusOrderByPlayCountDesc();
+        List<Game> games = gameRepository.findByStatusOrderByPlayCountDesc(GameStatus.ACTIVE);
         redisTemplate.opsForValue().set(cacheKey, games, 5, TimeUnit.MINUTES);
 
         return games;
