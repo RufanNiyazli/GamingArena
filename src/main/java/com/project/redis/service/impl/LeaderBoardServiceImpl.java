@@ -3,6 +3,7 @@ package com.project.redis.service.impl;
 
 import com.project.redis.dto.response.LeaderboardEntry;
 import com.project.redis.dto.response.LeaderboardUpdateResult;
+import com.project.redis.dto.response.UserRankInfo;
 import com.project.redis.model.User;
 import com.project.redis.repository.UserRepository;
 import com.project.redis.service.ILeaderBoardService;
@@ -80,6 +81,110 @@ public class LeaderBoardServiceImpl implements ILeaderBoardService {
 
     }
 
+    public List<LeaderboardEntry> getTop100() {
+        return getTopPlayer(100);
+    }
+
+    public List<LeaderboardEntry> getDailyTop10() {
+        String key = getDailyLeaderboardKey(LocalDate.now());
+        Set<ZSetOperations.TypedTuple<Object>> results = zSetOperations.reverseRangeWithScores(key, 0, 9);
+        if (results == null) {
+            return List.of();
+        }
+        return buildLeaderboardEntries(results, 1);
+    }
+
+    public List<LeaderboardEntry> getWeeklyTop10() {
+        String key = getWeeklyLeaderboardKey();
+        Set<ZSetOperations.TypedTuple<Object>> results = zSetOperations.reverseRangeWithScores(key, 0, 9);
+        if (results == null) {
+            return List.of();
+        }
+        return buildLeaderboardEntries(results, 1);
+    }
+
+    public List<LeaderboardEntry> getGameTop10(Long gameId) {
+        String key = getGameLeaderboardKey(gameId);
+
+        Set<ZSetOperations.TypedTuple<Object>> results =
+                zSetOperations.reverseRangeWithScores(key, 0, 9);
+
+        if (results == null) {
+            return List.of();
+        }
+
+        return buildLeaderboardEntries(results, 1);
+    }
+
+    public UserRankInfo getUserRank(Long userId) {
+        log.info("📊 User reytinqi: user:{}", userId);
+
+        String member = getUserMember(userId);
+
+        // Global
+        Long globalRank = zSetOperations.reverseRank(GLOBAL_LEADERBOARD, member);
+        Double globalScore = zSetOperations.score(GLOBAL_LEADERBOARD, member);
+
+        // Daily
+        String dailyKey = getDailyLeaderboardKey(LocalDate.now());
+        Long dailyRank = zSetOperations.reverseRank(dailyKey, member);
+        Double dailyScore = zSetOperations.score(dailyKey, member);
+
+        // Weekly
+        String weeklyKey = getWeeklyLeaderboardKey();
+        Long weeklyRank = zSetOperations.reverseRank(weeklyKey, member);
+        Double weeklyScore = zSetOperations.score(weeklyKey, member);
+
+        // Total players
+        Long totalPlayers = zSetOperations.size(GLOBAL_LEADERBOARD);
+
+        if (globalRank == null || globalScore == null) {
+            log.warn("❌ User leaderboard-da tapılmadı: user:{}", userId);
+            return null;
+        }
+
+        User user = userRepository.findById(userId).orElse(null);
+
+        return UserRankInfo.builder()
+                .userId(userId)
+                .username(user != null ? user.getUsername() : null)
+                .avatar(user != null ? user.getAvatar() : null)
+                .globalRank(globalRank.intValue() + 1)
+                .globalScore(globalScore.longValue())
+                .dailyRank(dailyRank != null ? dailyRank.intValue() + 1 : null)
+                .dailyScore(dailyScore != null ? dailyScore.longValue() : null)
+                .weeklyRank(weeklyRank != null ? weeklyRank.intValue() + 1 : null)
+                .weeklyScore(weeklyScore != null ? weeklyScore.longValue() : null)
+                .totalPlayers(totalPlayers != null ? totalPlayers.intValue() : 0)
+                .percentile(calculatePercentile(globalRank.intValue(), totalPlayers))
+                .tier(calculateTier(globalRank.intValue()))
+                .build();
+    }
+
+    private String getUserMember(Long userId) {
+        return "user:" + userId;
+    }
+
+    private Double calculatePercentile(int rank, Long totalPlayers) {
+        if (totalPlayers == null || totalPlayers == 0) {
+            return 0.0;
+        }
+        return ((totalPlayers - rank) * 100.0) / totalPlayers;
+    }
+
+    /**
+     * Tier/Badge teyin et
+     */
+    private String calculateTier(int rank) {
+        if (rank == 1) return "🥇 Champion";
+        if (rank <= 3) return "🥈 Master";
+        if (rank <= 10) return "🥉 Diamond";
+        if (rank <= 50) return "⭐ Platinum";
+        if (rank <= 100) return "💎 Gold";
+        if (rank <= 500) return "🎖️ Silver";
+        return "🏅 Bronze";
+    }
+
 
     private String getMember(Long userId) {
         return "user:" + userId;
@@ -136,6 +241,6 @@ public class LeaderBoardServiceImpl implements ILeaderBoardService {
     }
 
     private Long extractUserId(String member) {
-        return Long.parseLong(member.replace("user:", ""))
+        return Long.parseLong(member.replace("user:", ""));
     }
 }
