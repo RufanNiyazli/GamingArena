@@ -1,53 +1,53 @@
-# 🎮 Gaming Arena - Real-time Oyun Platforması
+# 🎮 Gaming Arena - Real-time Gaming Platform
 
-**Redis, Spring Boot və PostgreSQL ilə hazırlanmış müasir oyun platforması**
+**Modern gaming platform built with Redis, Spring Boot, and PostgreSQL**
 
 ---
 
-## 📋 Mündəricat
+## 📋 Table of Contents
 
-- [Layihə Haqqında](#-layihə-haqqında)
-- [Texnologiyalar](#-texnologiyalar)
-- [Arxitektura](#-arxitektura)
-- [Xüsusiyyətlər](#-xüsusiyyətlər)
-- [Quraşdırma](#-quraşdırma)
+- [About the Project](#-about-the-project)
+- [Technologies](#-technologies)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Installation](#-installation)
 - [API Endpoints](#-api-endpoints)
-- [Redis Data Strukturları](#-redis-data-strukturları)
+- [Redis Data Structures](#-redis-data-structures)
 - [Authentication Flow](#-authentication-flow)
 - [Database Schema](#-database-schema)
 
 ---
 
-## 🎯 Layihə Haqqında
+## 🎯 About the Project
 
-**Gaming Arena** - istifadəçilərin müxtəlif oyunlar oynaya, reytinq toplaya və bir-biri ilə yarışa biləcəyi real-time oyun platformasıdır.
+**Gaming Arena** is a real-time gaming platform where users can play various games, earn rankings, and compete with each other.
 
-### 🎮 Əsas Funksiyalar
+### 🎮 Core Features
 
-✅ **Email ilə OTP-based Authentication** (şifrəsiz giriş)  
+✅ **Email-based OTP Authentication** (passwordless login)  
 ✅ **Real-time Leaderboard** (Sorted Set)  
 ✅ **Online Users Tracking** (Set)  
 ✅ **Activity Logging** (List)  
 ✅ **Like System** (Set)  
-✅ **User Profil Cache** (Hash)  
+✅ **User Profile Cache** (Hash)  
 ✅ **Session Management** (String + TTL)  
 ✅ **Friend System** (Set)  
 
-### 🎓 Təhsil Məqsədi
+### 🎓 Educational Purpose
 
-Bu layihə **Redis-in bütün data type-larını** real ssenaridə öyrətmək üçün hazırlanıb:
+This project is designed to teach **all Redis data types** in a real-world scenario:
 
-| Redis Type | İstifadə yeri |
-|------------|---------------|
-| STRING | OTP kodları, Session tokens |
-| HASH | User profil məlumatları |
-| LIST | Activity log (son 20 hərəkət) |
+| Redis Type | Use Case |
+|------------|----------|
+| STRING | OTP codes, Session tokens |
+| HASH | User profile data |
+| LIST | Activity log (last 20 actions) |
 | SET | Likes, Online users, Friends |
-| SORTED SET | Leaderboard (reytinq lövhəsi) |
+| SORTED SET | Leaderboard (ranking board) |
 
 ---
 
-## 🛠️ Texnologiyalar
+## 🛠️ Technologies
 
 ### Backend Stack
 
@@ -74,16 +74,16 @@ Bu layihə **Redis-in bütün data type-larını** real ssenaridə öyrətmək �
 
 ---
 
-## 🏗️ Arxitektura
+## 🏗️ Architecture
 
-### Hibrid Database Yanaşması
+### Hybrid Database Approach
 
 ```
 ┌─────────────────────────────────────┐
 │      POSTGRESQL (Permanent)         │
-│  • User məlumatları                 │
-│  • Game kataloqu                    │
-│  • Match history (arxiv)            │
+│  • User data                        │
+│  • Game catalog                     │
+│  • Match history (archive)          │
 │  • Achievements                     │
 └─────────────────────────────────────┘
               ↕
@@ -98,80 +98,80 @@ Bu layihə **Redis-in bütün data type-larını** real ssenaridə öyrətmək �
 └─────────────────────────────────────┘
 ```
 
-### Nə vaxt hansı DB?
+### When to Use Which DB?
 
-| Ssenari | Primary | Reason |
+| Scenario | Primary | Reason |
 |---------|---------|--------|
-| User qeydiyyat | PostgreSQL | Permanent data |
-| User profil (read) | Redis → PG | Cache-first |
-| OTP | Redis | Müvəqqəti (60s) |
-| Session | Redis | Tez yoxlama |
+| User registration | PostgreSQL | Permanent data |
+| User profile (read) | Redis → PG | Cache-first |
+| OTP | Redis | Temporary (60s) |
+| Session | Redis | Fast lookup |
 | Leaderboard | Redis | Real-time |
-| Activity Log | Redis | Son 20 kifayət |
+| Activity Log | Redis | Last 20 sufficient |
 | Online users | Redis | Real-time tracking |
 
 ---
 
-## ✨ Xüsusiyyətlər
+## ✨ Features
 
 ### 1️⃣ Authentication System
 
-**Email + OTP-based (şifrəsiz)**
+**Email + OTP-based (passwordless)**
 
 ```
-User qeydiyyat → Email ilə OTP alır → 
-OTP daxil edir → JWT token alır → Login olur
+User registers → Receives OTP via email → 
+Enters OTP → Gets JWT token → Logged in
 ```
 
-#### Təhlükəsizlik
+#### Security
 
-- ✅ OTP 60 saniyə yaşayır
-- ✅ JWT token 24 saat valid
-- ✅ Session Redis-də saxlanılır
-- ✅ Hər login-də yeni token
+- ✅ OTP expires in 60 seconds
+- ✅ JWT token valid for 24 hours
+- ✅ Session stored in Redis
+- ✅ New token on each login
 - ✅ Email verification required
 
 ### 2️⃣ Leaderboard System
 
-**Redis Sorted Set ilə real-time reytinq**
+**Real-time ranking with Redis Sorted Set**
 
 ```redis
 ZADD leaderboard:global 15000 user:1001
 ZREVRANGE leaderboard:global 0 9 WITHSCORES  # Top 10
-ZREVRANK leaderboard:global user:1001         # User-in yeri
+ZREVRANK leaderboard:global user:1001         # User's rank
 ```
 
-#### Xüsusiyyətlər
+#### Features
 
-- ⚡ Real-time yeniləmə
+- ⚡ Real-time updates
 - 🏆 Top 10 / Top 100
-- 📊 User-in rank-ını görmə
-- 🎯 Ətraf user-ləri görmə (±5)
+- 📊 View user's rank
+- 🎯 View nearby users (±5)
 
 ### 3️⃣ Activity Logging
 
-**Redis List ilə son hərəkətlərin saxlanması**
+**Store recent activities with Redis List**
 
 ```redis
 LPUSH logs:user:1001 "Played Chess Master - Won 150pts"
-LTRIM logs:user:1001 0 19  # Yalnız 20 log saxla
-LRANGE logs:user:1001 0 19 # Bütün logları oxu
+LTRIM logs:user:1001 0 19  # Keep only 20 logs
+LRANGE logs:user:1001 0 19 # Read all logs
 ```
 
 ### 4️⃣ Online Users Tracking
 
-**Redis Set ilə real-time online users**
+**Real-time online users with Redis Set**
 
 ```redis
 SADD online:users user:1001      # Login
 SREM online:users user:1001      # Logout
-SMEMBERS online:users            # Hamısını göstər
-SCARD online:users               # Say
+SMEMBERS online:users            # Get all
+SCARD online:users               # Count
 ```
 
 ### 5️⃣ Like System
 
-**Redis Set ilə unique likes**
+**Unique likes with Redis Set**
 
 ```redis
 SADD likes:game:501 user:1001    # Like
@@ -182,9 +182,9 @@ SCARD likes:game:501             # Total count
 
 ---
 
-## 🚀 Quraşdırma
+## 🚀 Installation
 
-### Tələblər
+### Requirements
 
 ```bash
 Java 17+
@@ -193,14 +193,14 @@ Redis 7+
 Maven 3.8+
 ```
 
-### 1️⃣ Repository Clone
+### 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/username/gaming-arena.git
 cd gaming-arena
 ```
 
-### 2️⃣ PostgreSQL Konfiqurasiyası
+### 2️⃣ PostgreSQL Configuration
 
 ```sql
 CREATE DATABASE gaming_arena;
@@ -208,13 +208,13 @@ CREATE USER arena_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE gaming_arena TO arena_user;
 ```
 
-### 3️⃣ Redis Başlatma
+### 3️⃣ Start Redis
 
 ```bash
-# Docker ilə
+# With Docker
 docker run -d -p 6379:6379 redis:7-alpine
 
-# Yerli quraşdırma
+# Local installation
 redis-server
 ```
 
@@ -240,7 +240,7 @@ spring:
 
 jwt:
   secret: your-super-secret-key-min-256-bit
-  expiration: 86400000  # 24 saat
+  expiration: 86400000  # 24 hours
 ```
 
 ### 5️⃣ Build & Run
@@ -258,7 +258,7 @@ Server: `http://localhost:8080`
 
 ### 🔐 Authentication
 
-#### 1. Qeydiyyat
+#### 1. Register
 
 ```http
 POST /api/auth/register
@@ -274,7 +274,7 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "message": "Qeydiyyat uğurlu. OTP email-ə göndərildi.",
+  "message": "Registration successful. OTP sent to email.",
   "data": {
     "userId": 1001,
     "email": "user@example.com",
@@ -283,7 +283,7 @@ Content-Type: application/json
 }
 ```
 
-#### 2. OTP Göndərmə
+#### 2. Send OTP
 
 ```http
 POST /api/auth/send-otp
@@ -298,7 +298,7 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "message": "OTP email-ə göndərildi",
+  "message": "OTP sent to email",
   "data": {
     "expiresIn": 60
   }
@@ -321,7 +321,7 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "message": "Login uğurlu",
+  "message": "Login successful",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIs...",
     "user": {
@@ -374,7 +374,7 @@ GET /api/users/{id}/friends
 
 ---
 
-## 🔴 Redis Data Strukturları
+## 🔴 Redis Data Structures
 
 ### 1️⃣ STRING - OTP & Sessions
 
@@ -403,13 +403,13 @@ HINCRBY user:1001 totalScore 150
 ### 3️⃣ LIST - Activity Log
 
 ```redis
-# Yeni activity əlavə et
+# Add new activity
 LPUSH logs:user:1001 "Played Chess - Won 150pts [2024-02-12 15:30]"
 
-# Yalnız 20 log saxla
+# Keep only 20 logs
 LTRIM logs:user:1001 0 19
 
-# Hamısını oxu
+# Read all
 LRANGE logs:user:1001 0 -1
 ```
 
@@ -430,7 +430,7 @@ SCARD likes:game:501
 ### 5️⃣ SORTED SET - Leaderboard
 
 ```redis
-# Xal əlavə et
+# Add score
 ZADD leaderboard:global 15000 user:1001
 ZINCRBY leaderboard:global 150 user:1001
 
@@ -440,7 +440,7 @@ ZREVRANGE leaderboard:global 0 9 WITHSCORES
 # User rank
 ZREVRANK leaderboard:global user:1001
 
-# Score aralığı
+# Score range
 ZREVRANGEBYSCORE leaderboard:global 15000 10000
 ```
 
@@ -456,10 +456,10 @@ ZREVRANGEBYSCORE leaderboard:global 15000 10000
 └─────────────────────────────────────────────────┘
                     ↓
          ┌──────────────────────┐
-         │ PostgreSQL-ə User yaz│
-         │ OTP generate: "5482" │
+         │ Save user to PG      │
+         │ Generate OTP: "5482" │
          │ Redis: SET otp:... EX│
-         │ Email göndər         │
+         │ Send email           │
          └──────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────────┐
@@ -470,10 +470,10 @@ ZREVRANGEBYSCORE leaderboard:global 15000 10000
                     ↓
          ┌──────────────────────┐
          │ Redis: GET otp:...   │
-         │ OTP düzgündür? ✅    │
-         │ JWT token yarat      │
+         │ OTP valid? ✅        │
+         │ Generate JWT token   │
          │ Redis: SET token:... │
-         │ Online users-ə əlavə │
+         │ Add to online users  │
          └──────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────────┐
@@ -484,8 +484,8 @@ ZREVRANGEBYSCORE leaderboard:global 15000 10000
          ┌──────────────────────┐
          │ JwtAuthFilter        │
          │ Token valid? ✅      │
-         │ User load            │
-         │ SecurityContext set  │
+         │ Load user            │
+         │ Set SecurityContext  │
          └──────────────────────┘
 ```
 
@@ -541,12 +541,12 @@ CREATE TABLE achievements (
 
 ---
 
-## 🧪 Test Etmə
+## 🧪 Testing
 
 ### Postman Collection
 
 ```bash
-# Collection import et
+# Import collection
 postman/gaming-arena.postman_collection.json
 ```
 
@@ -558,29 +558,29 @@ curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","username":"tester"}'
 
-# 2. Email-dən OTP al (console-da görsənəcək development-də)
+# 2. Get OTP from email (will show in console during development)
 
 # 3. Verify OTP
 curl -X POST http://localhost:8080/api/auth/verify-otp \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","otp":"5482"}'
 
-# 4. Token ilə protected endpoint
+# 4. Access protected endpoint with token
 curl -X GET http://localhost:8080/api/users/me \
   -H "Authorization: Bearer eyJhbGci..."
 ```
 
 ---
 
-## 📚 Redis Komandaları Referansı
+## 📚 Redis Commands Reference
 
-### Debugging üçün
+### For Debugging
 
 ```bash
 # Redis CLI
 redis-cli
 
-# Bütün key-ləri gör
+# See all keys
 KEYS *
 
 # Specific pattern
@@ -590,19 +590,19 @@ KEYS user:*
 # Key type
 TYPE leaderboard:global
 
-# TTL yoxla
+# Check TTL
 TTL otp:user@example.com
 
-# Sil
+# Delete
 DEL otp:user@example.com
-FLUSHALL  # HƏR ŞEYİ SİL (DİQQƏTLİ!)
+FLUSHALL  # DELETE EVERYTHING (CAREFUL!)
 ```
 
 ---
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-Pull requests qəbul edilir. Böyük dəyişikliklər üçün əvvəlcə issue açın.
+Pull requests are welcome. For major changes, please open an issue first.
 
 ---
 
@@ -630,4 +630,4 @@ MIT License
 
 ---
 
-**⭐ Bu layihəni bəyəndinizsə ulduz verməyi unutmayın!**
+**⭐ If you like this project, don't forget to give it a star!**
